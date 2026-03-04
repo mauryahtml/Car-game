@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>3 Lane Car Game</title>
+
+<style>
+body{
+    margin:0;
+    overflow:hidden;
+    background:linear-gradient(#87CEEB 60%, #444 60%);
+    font-family:Arial;
+}
+
+/* Road */
+.road{
+    position:absolute;
+    width:100%;
+    height:100%;
+}
+
+.lane{
+    position:absolute;
+    width:33.33%;
+    height:100%;
+    border-left:2px dashed white;
+}
+
+.lane:nth-child(1){ left:0%; }
+.lane:nth-child(2){ left:33.33%; }
+.lane:nth-child(3){ left:66.66%; }
+
+/* Player Car */
+.car{
+    position:absolute;
+    bottom:100px;
+    width:70px;
+    height:120px;
+    background:red;
+    border-radius:15px;
+    transition:all 0.2s;
+    box-shadow:0 15px 30px rgba(0,0,0,0.5);
+}
+
+/* Enemy */
+.enemy{
+    position:absolute;
+    top:-150px;
+    width:70px;
+    height:120px;
+    background:blue;
+    border-radius:15px;
+}
+
+/* Score */
+.score{
+    position:absolute;
+    top:20px;
+    left:20px;
+    font-size:22px;
+    color:white;
+    font-weight:bold;
+}
+
+/* Mobile Buttons */
+.controls{
+    position:absolute;
+    bottom:20px;
+    width:100%;
+    text-align:center;
+}
+
+.btn{
+    padding:15px 25px;
+    margin:5px;
+    font-size:18px;
+    border:none;
+    border-radius:10px;
+    background:black;
+    color:white;
+}
+</style>
+</head>
+
+<body>
+
+<div class="road">
+    <div class="lane"></div>
+    <div class="lane"></div>
+    <div class="lane"></div>
+</div>
+
+<div class="car" id="player"></div>
+<div class="score" id="score">Score: 0</div>
+
+<div class="controls">
+    <button class="btn" onclick="moveLeft()">⬅</button>
+    <button class="btn" onclick="jump()">⬆</button>
+    <button class="btn" onclick="moveRight()">➡</button>
+</div>
+
+<script>
+
+let player = document.getElementById("player");
+let scoreDisplay = document.getElementById("score");
+
+let lane = 1;
+let score = 0;
+let jumping = false;
+
+/* Set Lane Position */
+function setLane(){
+    let laneWidth = window.innerWidth / 3;
+    player.style.left = (lane * laneWidth + laneWidth/2 - 35) + "px";
+}
+setLane();
+
+/* Move Functions */
+function moveLeft(){
+    if(lane > 0){
+        lane--;
+        setLane();
+    }
+}
+
+function moveRight(){
+    if(lane < 2){
+        lane++;
+        setLane();
+    }
+}
+
+function jump(){
+    if(!jumping){
+        jumping = true;
+        player.style.bottom = "200px";
+        setTimeout(()=>{
+            player.style.bottom = "100px";
+            jumping = false;
+        },400);
+    }
+}
+
+/* Keyboard Support */
+document.addEventListener("keydown", function(e){
+    if(e.key === "ArrowLeft") moveLeft();
+    if(e.key === "ArrowRight") moveRight();
+    if(e.key === "ArrowUp") jump();
+});
+
+/* Enemy Create */
+function createEnemy(){
+    let enemy = document.createElement("div");
+    enemy.classList.add("enemy");
+
+    let enemyLane = Math.floor(Math.random()*3);
+    let laneWidth = window.innerWidth / 3;
+    enemy.style.left = (enemyLane * laneWidth + laneWidth/2 - 35) + "px";
+
+    document.body.appendChild(enemy);
+
+    let topPos = -150;
+    let move = setInterval(()=>{
+        topPos += 5;
+        enemy.style.top = topPos + "px";
+
+        let playerRect = player.getBoundingClientRect();
+        let enemyRect = enemy.getBoundingClientRect();
+
+        if(
+            playerRect.left < enemyRect.right &&
+            playerRect.right > enemyRect.left &&
+            playerRect.top < enemyRect.bottom &&
+            playerRect.bottom > enemyRect.top
+        ){
+            alert("Game Over! Score: " + score);
+            location.reload();
+        }
+
+        if(topPos > window.innerHeight){
+            clearInterval(move);
+            enemy.remove();
+            score++;
+            scoreDisplay.innerText = "Score: " + score;
+        }
+
+    },20);
+}
+
+setInterval(createEnemy,1500);
+
+</script>
+
+</body>
+  </html>
